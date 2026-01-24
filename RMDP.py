@@ -7,6 +7,7 @@ from generatingData import generateTestData
 from model.driver import driver
 from model.order import Ds
 from model.restaurant import restaurant
+from pandas.core.frame import DataFrame
 import itertools
 import time
 import numpy as np
@@ -112,6 +113,28 @@ class RMDP:
             self.P_x = copy.deepcopy(P_hat)
         self.Remove()
 
+    def possibleDriver(self):
+        count = 0
+        delay = []
+        driver = []
+        probillty = []
+        for routePerVehicle in self.Theta_x:
+            delay.append(self.deltaSDelay(routePerVehicle))
+            driver.append(self.vehiceList[count])
+            probillty.append(random.random())
+            count = count + 1
+        
+        result = {
+            "driver":driver,
+            "delay":delay,
+            "probility":probillty
+        }
+        data = DataFrame(result)
+       
+        data = data.sort_values(by=['delay', 'probility'],ascending=[True,False])
+        
+        return data['driver'].to_list()
+
     def deltaSDelay(self, route: list):
         delay: float = 0.0
         tripTime: float = 0.0
@@ -200,9 +223,9 @@ class RMDP:
         return (distance(driv.x, driv.y, res.xPosition, res.yPosition) +
                 distance(res.xPosition, res.yPosition, order.x, order.y)) / self.velocity
 
-    def FindVehicle(self, Order: Ds):
+    def FindVehicle(self, Order: Ds,possibledriver):
         OrderRestaurant = self.restaurantList[Order.getRestaurantId() - 1]
-        minTimeDriver = self.vehiceList[0]
+        minTimeDriver = possibledriver[0]
         minTimeTolTal = float('inf')
         handleDriver = [
             driver for driver in self.vehiceList if driver.getCurrentCapacity() < self.capacity]
