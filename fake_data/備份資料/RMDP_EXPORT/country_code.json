@@ -1,0 +1,91 @@
+[{
+  "_id": {
+    "$oid": "6120e1b51ca9fa6180ecf43f"
+  },
+  "country_code": 1,
+  "country": "India"
+},{
+  "_id": {
+    "$oid": "6120e1b51ca9fa6180ecf440"
+  },
+  "country_code": 14,
+  "country": "Australia"
+},{
+  "_id": {
+    "$oid": "6120e1b51ca9fa6180ecf441"
+  },
+  "country_code": 30,
+  "country": "Brazil"
+},{
+  "_id": {
+    "$oid": "6120e1b51ca9fa6180ecf442"
+  },
+  "country_code": 37,
+  "country": "Canada"
+},{
+  "_id": {
+    "$oid": "6120e1b51ca9fa6180ecf443"
+  },
+  "country_code": 94,
+  "country": "Indonesia"
+},{
+  "_id": {
+    "$oid": "6120e1b51ca9fa6180ecf444"
+  },
+  "country_code": 148,
+  "country": "New Zealand"
+},{
+  "_id": {
+    "$oid": "6120e1b51ca9fa6180ecf445"
+  },
+  "country_code": 162,
+  "country": "Phillipines"
+},{
+  "_id": {
+    "$oid": "6120e1b51ca9fa6180ecf446"
+  },
+  "country_code": 166,
+  "country": "Qatar"
+},{
+  "_id": {
+    "$oid": "6120e1b51ca9fa6180ecf447"
+  },
+  "country_code": 184,
+  "country": "Singapore"
+},{
+  "_id": {
+    "$oid": "6120e1b51ca9fa6180ecf448"
+  },
+  "country_code": 189,
+  "country": "South Africa"
+},{
+  "_id": {
+    "$oid": "6120e1b51ca9fa6180ecf449"
+  },
+  "country_code": 191,
+  "country": "Sri Lanka"
+},{
+  "_id": {
+    "$oid": "6120e1b51ca9fa6180ecf44a"
+  },
+  "country_code": 208,
+  "country": "Turkey"
+},{
+  "_id": {
+    "$oid": "6120e1b51ca9fa6180ecf44b"
+  },
+  "country_code": 214,
+  "country": "UAE"
+},{
+  "_id": {
+    "$oid": "6120e1b51ca9fa6180ecf44c"
+  },
+  "country_code": 215,
+  "country": "United Kingdom"
+},{
+  "_id": {
+    "$oid": "6120e1b51ca9fa6180ecf44d"
+  },
+  "country_code": 216,
+  "country": "United States"
+}]

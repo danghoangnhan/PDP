@@ -6,8 +6,7 @@ from model.restaurant import restaurant
 
 
 def get_database(database):
-    client = MongoClient('60.251.157.47', 27017)
-    # Create the database for our example (we will use the same database throughout the tutorial
+    client = MongoClient('mongodb://test1:test1@140.136.151.94:27017/RMDP?authSource=admin')
     return client[database]
 
 
@@ -29,8 +28,9 @@ def insert_database(model, database):
     if isinstance(model, driver):
         post = {"latitude": model.getLatitude(),
                 "longitude": model.getLongitude(),
-                "velocity":  0,
-                "capacity":  0
+                "velocity": 0,
+                "capacity": 0,
+                "route": []
                 }
         collectionIndex = database.driver
         index_id = collectionIndex.insert_one(post).inserted_id

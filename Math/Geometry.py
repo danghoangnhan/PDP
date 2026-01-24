@@ -40,7 +40,7 @@ def interSectionCircleAndLine(centerX: float, centerY: float, Radius: float, aX:
 
     # print(i.geoms[0].coords[0])
     # print(i.geoms[1].coords[0])
-    print(intersection.x, intersection.y)
+    # print(intersection.x, intersection.y)
     return intersection.x, intersection.y
 
     # print(intersection.geoms[0].coords[0])

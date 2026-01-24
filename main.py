@@ -1,21 +1,17 @@
 from RMDP import RMDP
 from generatingData import generateTestData
-import folium
 
 
 def main():
     delay = float('inf')
     buffer: int = 1
     maxLengthPost: int = 10  # p_max
-    maxTimePost: int = 20  # minutes     #t_pmax
+    maxTimePost: int = 20 * 60  # minutes     #t_pmax
     capacity: int = 10
-    velocity: int = 20
+    velocity: int = 20 * 1000 / 3600
     restaurantRepareTime: int = 10 * 60
     instance = RMDP(delay, maxLengthPost, maxTimePost, capacity, velocity, restaurantRepareTime)
-
     potentialOrders: list = generateTestData.importOrderValue()
-    m = folium.Map(location=[45.5236, -122.6750])
-    print(m)
     for time in range(0, 480, 5):
         s: int = 0  # state
         currentTime = time

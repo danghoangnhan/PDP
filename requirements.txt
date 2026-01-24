@@ -1,0 +1,11 @@
+django
+celery
+flower
+django-bootstrap3
+numpy~=1.21.1
+matplotlib~=3.4.2
+Shapely~=1.7.1
+pandocfilters~=1.4.3
+SQLAlchemy~=1.4.22
+pymongo~=3.12.0
+pygame~=2.0.1
