@@ -1,7 +1,17 @@
 [project]
 name = "pdp"
 version = "0.1.0"
-description = "Add your description here"
+description = "Pick-up and Delivery Problem solver using Google OR-Tools"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "ortools>=9.15.6755",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
