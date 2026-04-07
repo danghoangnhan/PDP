@@ -23,26 +23,6 @@ def Score(count):  # 計分
     gameDisplay.blit(text, (0, 0))
 
 
-class ball:
-    """
-    Class to keep track of a ball's location and vector.
-    """
-
-    def __init__(self):  # 初始值
-        self.x = 0
-        self.y = 0
-        self.change_x = 0
-        self.change_y = 0
-
-
-def makebullet(x, y):  # 產出子彈
-    bullet = ball()
-    bullet.x = x + 50  # 圖的上方中央
-    bullet.y = y  # y軸位置不動
-    bullet.change_x = 0  # x的變動率
-    bullet.change_y = - 3  # y的變動率
-    return bullet
-
 
 def text_objects(text, font):  # 字的顏色
     textSurface = font.render(text, True, (255, 255, 255))
