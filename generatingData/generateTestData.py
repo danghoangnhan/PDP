@@ -1,67 +1,45 @@
-import math
-
 import setting
-from data import rawData
 from model import driver, order, restaurant
 
 
+def _read_tsv(filepath):
+    rows = []
+    with open(filepath) as f:
+        for line in f:
+            rows.append(line.strip().split("\t"))
+    return rows
+
+
 def importRestaurantValue():
-    R: list = []
-    x_R: list = []
-    y_R: list = []
-    with open(setting.restaurant_dir) as openfileobject:
-        for line in openfileobject:
-            if line.__contains__("\n"):
-                line = line.replace("\n", "")
-            value = line.split("\t")
-            restaurantInfo = restaurant.restaurant(
-                int(value[0]), float(value[1]), float(value[2])
-            )
-            R.append(restaurantInfo)
-            x_R.append(restaurantInfo.xPosition)
-            y_R.append(restaurantInfo.yPosition)
+    R, x_R, y_R = [], [], []
+    for row in _read_tsv(setting.restaurant_dir):
+        r = restaurant.restaurant(int(row[0]), float(row[1]), float(row[2]))
+        R.append(r)
+        x_R.append(r.xPosition)
+        y_R.append(r.yPosition)
     return R, x_R, y_R
 
 
 def importVehicleValue():
-    V: list = []
-    x_V: list = []
-    y_V: list = []
-
-    with open(setting.vehicles_dir) as openfileObject:
-        for line in openfileObject:
-            if line.__contains__("\n"):
-                line = line.replace("\n", "")
-            value = line.split("\t")
-            vehicleInfo = driver.driver(int(value[0]), float(value[1]), float(value[2]))
-            V.append(vehicleInfo)
-            x_V.append(vehicleInfo.x)
-            y_V.append(vehicleInfo.y)
+    V, x_V, y_V = [], [], []
+    for row in _read_tsv(setting.vehicles_dir):
+        v = driver.driver(int(row[0]), float(row[1]), float(row[2]))
+        V.append(v)
+        x_V.append(v.x)
+        y_V.append(v.y)
     return V, x_V, y_V
 
 
 def importOrderValue():
-    D_0: list = []
-    D_x: list = []
-    D_y: list = []
-    with open(setting.order_dir) as openFileObject:
-        lineNumb: int = 0
-        for line in openFileObject:
-            if line.__contains__("\n"):
-                line = line.replace("\n", "")
-            value = line.split("_")
-            orderInfo = order.Ds(
-                lineNumb,
-                int(value[1]),
-                int(value[5]),
-                0,
-                0,
-                float(value[3]),
-                float(value[4]),
-                int(value[6]),
+    D_0, D_x, D_y = [], [], []
+    with open(setting.order_dir) as f:
+        for lineNumb, line in enumerate(f):
+            value = line.strip().split("_")
+            o = order.Ds(
+                lineNumb, int(value[1]), int(value[5]),
+                0, 0, float(value[3]), float(value[4]), int(value[6]),
             )
-            D_0.append(orderInfo)
-            D_x.append(orderInfo.x)
-            D_y.append(orderInfo.y)
-            lineNumb += 1
+            D_0.append(o)
+            D_x.append(o.x)
+            D_y.append(o.y)
     return D_0, D_x, D_y
