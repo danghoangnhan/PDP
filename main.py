@@ -8,7 +8,7 @@ def main():
     restaurantPrepareTime = 10 * 60
     instance = RMDP(maxLengthPost, capacity, velocity, restaurantPrepareTime)
     for time in range(0, 480, 5):
-        instance.runRMDP(time)
+        instance.runRMDP(0, time)
         instance.updateDriverLocation(time)
 
 
