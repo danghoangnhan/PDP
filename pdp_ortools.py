@@ -71,9 +71,11 @@ def create_data_model(orders, restaurants, drivers, prepare_time, velocity, capa
     time_matrix = build_time_matrix(dist_matrix, velocity)
 
     large_number = 86400  # 24 hours in seconds
+    # node.earliest / node.latest are stored in minutes (from raw data);
+    # convert to seconds to match the time_matrix units.
     time_windows = [(0, large_number)]  # depot
     for node in nodes[1:]:
-        time_windows.append((node.earliest, node.latest))
+        time_windows.append((node.earliest * 60, node.latest * 60))
 
     demands = [node.demand for node in nodes]
     demands[0] = 0  # depot
