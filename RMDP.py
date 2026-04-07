@@ -20,27 +20,17 @@ class RMDP:
         velocity: int,
         restaurantPrepareTime: int,
     ):
-        self.Ds_0, self.D_x, self.D_y = generateTestData.importOrderValue()
-        self.vehiceList, self.vehiclelist_x, self.vehiclelist_y = (
-            generateTestData.importVehicleValue()
-        )
-        self.restaurantList, self.restauranList_x, self.restauranList_y = (
-            generateTestData.importRestaurantValue()
-        )
-        self.x = 0
-        self.D_0 = []  # Order
-        self.Order_num = 2
+        self.Ds_0, _, _ = generateTestData.importOrderValue()
+        self.vehiceList, _, _ = generateTestData.importVehicleValue()
+        self.restaurantList, _, _ = generateTestData.importRestaurantValue()
+        self.D_0 = []
         self.Theta_x = [
-            {"driverId": driver.get_id(), "route": []} for driver in self.vehiceList
+            {"driverId": d.get_id(), "route": []} for d in self.vehiceList
         ]
-        self.Delta_S = 0
         self.P_x = []
         self.time_buffer = 0
         self.t_Pmax = 40 * 60
-        self.t_ba = 10
-        self.delay = delay
         self.maxLengthPost = maxLengthPost
-        self.maxTimePost = maxTimePost
         self.capacity = capacity
         self.velocity = velocity
         self.restaurantPrepareTime = restaurantPrepareTime
@@ -49,8 +39,8 @@ class RMDP:
             vehicle.setVelocity(self.velocity)
             vehicle.setCurrentCapacity(0)
 
-        for restaurant in self.restaurantList:
-            restaurant.setPrepareTime(self.restaurantPrepareTime)
+        for rest in self.restaurantList:
+            rest.setPrepareTime(self.restaurantPrepareTime)
 
     def _processOrders(self, sequence, Theta_hat, P_hat):
         for D in sequence:
