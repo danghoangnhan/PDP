@@ -13,9 +13,7 @@ from model.restaurant import restaurant
 class RMDP:
     def __init__(
         self,
-        delay: int,
         maxLengthPost: int,
-        maxTimePost: int,
         capacity: int,
         velocity: int,
         restaurantPrepareTime: int,
