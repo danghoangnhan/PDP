@@ -1,4 +1,3 @@
-
 def nextPermutation(nums):
     """
     :type nums: List[int]
@@ -11,8 +10,8 @@ def nextPermutation(nums):
     reverse(nums, i, n - 1)
     if i > 0:
         for j in range(i, n):
-            if nums[j].orderId > nums[i-1].orderId:
-                swap(nums, i-1, j)
+            if nums[j].orderId > nums[i - 1].orderId:
+                swap(nums, i - 1, j)
                 break
 
 

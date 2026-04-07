@@ -1,11 +1,8 @@
-from numpy import ones, vstack
-from numpy.linalg import lstsq
-import numpy as np
 import matplotlib.pyplot as plt
-from shapely.geometry import LineString
-from shapely.geometry import Point
+import numpy as np
 from numpy import ones, vstack
 from numpy.linalg import lstsq
+from shapely.geometry import LineString, Point
 
 
 def lineSolution(x1: float, x2: float, y1: float, y2: float):
@@ -13,7 +10,6 @@ def lineSolution(x1: float, x2: float, y1: float, y2: float):
     x_coords, y_coords = zip(*points)
     A = vstack([x_coords, ones(len(x_coords))]).T
     a, b = lstsq(A, y_coords)[0]
-    print("Line Solution is y = {a}x + {b}".format(a=a, b=b))
     return a, b
 
 
@@ -21,13 +17,20 @@ def showCircle():
     x = np.linspace(-1.0, 1.0, 100)
     y = np.linspace(-1.0, 1.0, 100)
     X, Y = np.meshgrid(x, y)
-    F = X ** 2 + Y ** 2 - 0.6
+    F = X**2 + Y**2 - 0.6
     plt.contour(X, Y, F, [0])
     plt.show()
 
 
-def interSectionCircleAndLine(centerX: float, centerY: float, Radius: float, aX: float, aY: float, bX: float,
-                              bY: float):
+def interSectionCircleAndLine(
+    centerX: float,
+    centerY: float,
+    Radius: float,
+    aX: float,
+    aY: float,
+    bX: float,
+    bY: float,
+):
     # CenterPoint = Point(centerX, centerY)
     # circle = CenterPoint.buffer(Radius).boundary
     # lineEquation = LineString([(aX, aY), (bX, bY)])
