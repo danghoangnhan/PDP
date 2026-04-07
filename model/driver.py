@@ -9,10 +9,6 @@ class driver:
     def get_id(self):
         return self.id
 
-
-    def get_id(self):
-        return self.id
-
     def setVelocity(self, velocity):
         self.velocity = velocity
 
