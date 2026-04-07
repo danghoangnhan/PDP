@@ -298,21 +298,9 @@ class RMDP:
             targetRoute["route"] = copy.deepcopy(ans[:])
 
     def Postponement(self, P_hat, D, p_max, t_Pmax):
-        # P_hat,D, p_max, t_Pmax have the description
-        # if Theta_hat != D:  # I don't know how to get current route plan
-        if len(P_hat) == 0:  # if postponement set is empty
+        if len(P_hat) == 0:
             return True
-        elif (
-            len(P_hat) < self.maxLengthPost
-        ):  # if number of postponement <= max of postponement
-            # The time difference with the first order of P_hat and check whether <= max
-            if D.t - P_hat[0].t < t_Pmax:
-                # of poatponement time
-                return True
-            else:
-                return False
-        else:
-            return False
+        return len(P_hat) < self.maxLengthPost and D.t - P_hat[0].t < t_Pmax
 
     def sequencePermutation(self, sequence):
         # parameter init
