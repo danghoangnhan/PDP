@@ -86,7 +86,7 @@ class RMDP:
                     P_hat.clear()
                 P_hat.append(D)
 
-    def runRMDP(self, state: int, T: int):
+    def runRMDP(self, T: int):
         delay: float = float("inf")
         Order_num = 5
         T *= Order_num
