@@ -177,10 +177,7 @@ class RMDP:
     # main function
 
     def Slack(self):
-        totalSlack: int = 0
-        for routePerVehicle in self.Theta_x:
-            totalSlack += self.slackDelay(routePerVehicle)
-        return totalSlack
+        return sum(self.slackDelay(r) for r in self.Theta_x)
 
     def updateDriverLocation(self, time):
         hasOrderVehicle: list = [
@@ -259,10 +256,7 @@ class RMDP:
         return delay
 
     def TotalDelay(self):
-        totalSlack: int = 0
-        for routePerVehicle in self.Theta_x:
-            totalSlack += self.deltaSDelay(routePerVehicle)
-        return totalSlack
+        return sum(self.deltaSDelay(r) for r in self.Theta_x)
 
     def Remove(self):
         for pospondedOrder in self.P_x:
