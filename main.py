@@ -1,5 +1,4 @@
 from RMDP import RMDP
-from generatingData import generateTestData
 
 
 def main():
