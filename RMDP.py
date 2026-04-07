@@ -1,5 +1,4 @@
 import copy
-import itertools
 import time
 
 import matplotlib.pyplot as plt
@@ -58,23 +57,8 @@ class RMDP:
         for restaurant in self.restaurantList:
             restaurant.setPrepareTime(self.restaurantPrepareTime)
 
-    def runRMDP(self, state: int, T: int):
-        delay: float = float("inf")
-        Order_num = 5
-        T *= Order_num
-        slack = 0
-        S = 0  # state(not sure)
-        self.D_0.clear()
-        for i in range(T, T + Order_num):
-            self.D_0.append(self.Ds_0[i])
-
-        # counter for n! type sequences
-        # unassignedOrderPermutation = list(itertools.permutations(self.D_0))
-        permutation = self.sequencePermutation(self.D_0)
-        # rmdp
-        Theta_hat = copy.deepcopy(self.Theta_x)  # Candidate route plan
-        P_hat = copy.deepcopy(self.P_x)
-        for D in permutation:
+    def _processOrders(self, sequence, Theta_hat, P_hat):
+        for D in sequence:
             currentPairdDriver: driver = self.FindVehicle(D)
             D.setDriverId(currentPairdDriver.get_id())
             currentPairdRestaurent: restaurant = copy.deepcopy(
@@ -118,6 +102,20 @@ class RMDP:
                         )
                     P_hat.clear()
                 P_hat.append(D)
+
+    def runRMDP(self, state: int, T: int):
+        delay: float = float("inf")
+        Order_num = 5
+        T *= Order_num
+        slack = 0
+        self.D_0.clear()
+        for i in range(T, T + Order_num):
+            self.D_0.append(self.Ds_0[i])
+
+        permutation = self.sequencePermutation(self.D_0)
+        Theta_hat = copy.deepcopy(self.Theta_x)
+        P_hat = copy.deepcopy(self.P_x)
+        self._processOrders(permutation, Theta_hat, P_hat)
         S = self.TotalDelay()
         if (S < delay) or ((S == delay) and (self.Slack() < slack)):
             slack = self.Slack()
@@ -352,53 +350,7 @@ class RMDP:
         return old_sequence
 
     def sequenceRMDP(self, sequence):
-        Theta_hat = copy.deepcopy(self.Theta_x)  # Candidate route plan
+        Theta_hat = copy.deepcopy(self.Theta_x)
         P_hat = copy.deepcopy(self.P_x)
-        for D in sequence:
-            currentPairdDriver: driver = self.FindVehicle(D)
-            D.setDriverId(currentPairdDriver.get_id())
-            currentPairdRestaurent: restaurant = copy.deepcopy(
-                self.restaurantList[D.getRestaurantId() - 1]
-            )
-            currentPairdRestaurent.setOrderId(D.getId())
-            currentPairdDriver.setCurrentCapacity(
-                currentPairdDriver.getCurrentCapacity() + 1
-            )
-            self.AssignOrder(Theta_hat, D, currentPairdDriver, currentPairdRestaurent)
-            if self.Postponement(P_hat, D, self.maxLengthPost, self.t_Pmax):
-                if D not in P_hat:
-                    P_hat.append(D)
-            else:
-                while (D.t - P_hat[0].t) >= self.t_Pmax:
-                    PairdDriver: driver = self.FindVehicle(P_hat[0])
-                    P_hat[0].setDriverId(PairdDriver.get_id())
-                    PairdDriver.setCurrentCapacity(PairdDriver.getCurrentCapacity() + 1)
-                    PairedRestaurent = copy.deepcopy(
-                        self.restaurantList[P_hat[0].getRestaurantId() - 1]
-                    )
-                    PairedRestaurent.setOrderId(D.getId())
-
-                    self.AssignOrder(Theta_hat, P_hat[0], PairdDriver, PairedRestaurent)
-
-                    P_hat.pop(0)
-                    if len(P_hat) == 0:
-                        break
-
-                if len(P_hat) >= self.maxLengthPost:
-                    for pospondedOrder in P_hat:
-                        PairdDriver: driver = self.FindVehicle(pospondedOrder)
-                        PairdDriver.setCurrentCapacity(
-                            PairdDriver.getCurrentCapacity() + 1
-                        )
-                        pospondedOrder.setDriverId(PairdDriver.get_id())
-                        PairedRestaurent = copy.deepcopy(
-                            self.restaurantList[pospondedOrder.getRestaurantId() - 1]
-                        )
-                        PairedRestaurent.setOrderId(pospondedOrder.getId())
-                        self.AssignOrder(
-                            Theta_hat, pospondedOrder, PairdDriver, PairedRestaurent
-                        )
-                    P_hat.clear()
-                P_hat.append(D)
-        S = self.TotalDelay()
-        return S
+        self._processOrders(sequence, Theta_hat, P_hat)
+        return self.TotalDelay()
