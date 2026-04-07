@@ -255,29 +255,16 @@ class RMDP:
 
     def Remove(self):
         for pospondedOrder in self.P_x:
-            currentPairedDriver: driver = self.vehiceList[
-                pospondedOrder.getDriverId() - 1
-            ]
-            targetRoute: list = next(
-                (
-                    route
-                    for route in self.Theta_x
-                    if route.get("driverId") == currentPairedDriver.get_id()
-                ),
-                [],
+            driverId = self.vehiceList[pospondedOrder.getDriverId() - 1].get_id()
+            targetRoute = next(
+                (r for r in self.Theta_x if r.get("driverId") == driverId), []
             )
-            ans = [
-                node
-                for node in targetRoute["route"]
-                if (
-                    (isinstance(node, Ds) and node.getId() != pospondedOrder.getId())
-                    or (
-                        isinstance(node, restaurant)
-                        and node.getOrderId() != pospondedOrder.getId()
-                    )
-                )
+            orderId = pospondedOrder.getId()
+            targetRoute["route"] = [
+                node for node in targetRoute["route"]
+                if (isinstance(node, Ds) and node.getId() != orderId)
+                or (isinstance(node, restaurant) and node.getOrderId() != orderId)
             ]
-            targetRoute["route"] = copy.deepcopy(ans[:])
 
     def Postponement(self, P_hat, D, p_max, t_Pmax):
         if len(P_hat) == 0:
