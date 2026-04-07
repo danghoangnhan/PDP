@@ -260,19 +260,14 @@ class RMDP:
         return len(P_hat) < self.maxLengthPost and D.t - P_hat[0].t < t_Pmax
 
     def sequencePermutation(self, sequence):
-        # parameter init
         initT = 1000
         minT = 1
         iterL = 10
         eta = 0.95
-        k = 1
-
-        # simulated annealing
         t = initT
         old_sequence = copy.deepcopy(sequence)
-        counter = 0
         while t > minT:
-            for _ in range(iterL):  # MonteCarlo method reject propblity
+            for _ in range(iterL):
                 delay_old = self.sequenceRMDP(old_sequence)
                 position_switch1 = np.random.randint(low=0, high=len(sequence))
                 if position_switch1 <= (len(sequence) / 2):
@@ -285,13 +280,9 @@ class RMDP:
                     new_sequence[position_switch1],
                 )
                 delay_new = self.sequenceRMDP(new_sequence)
-                res = delay_new - delay_old
-                if res < 0 or np.exp(-res / (k * t)) > np.random.rand():
+                if delay_new - delay_old < 0 or np.exp(-(delay_new - delay_old) / t) > np.random.rand():
                     old_sequence = copy.deepcopy(new_sequence)
-                counter += 1
-            t = t * eta
-            # print(t)
-        print(counter)
+            t *= eta
         return old_sequence
 
     def sequenceRMDP(self, sequence):
