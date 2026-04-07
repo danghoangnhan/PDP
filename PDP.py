@@ -24,3 +24,39 @@ def check_capacity(route, max_capacity):
         if load > max_capacity:
             return False
     return True
+
+
+def build_requests(orders, restaurants, prepare_time):
+    """Convert orders + restaurants into list of (PickupNode, DeliveryNode) pairs."""
+    requests = []
+    for idx, order in enumerate(orders):
+        rest = restaurants[order.getRestaurantId() - 1]
+        node_base_id = idx * 2
+
+        pickup = PickupNode(
+            node_id=node_base_id + 1,
+            lat=rest.getLatitude(),
+            lon=rest.getLongitude(),
+            demand=1,
+            earliest=order.get_timeRequest(),
+            latest=order.get_timeRequest() + prepare_time,
+            service_time=prepare_time,
+            order_id=idx,
+        )
+
+        delivery = DeliveryNode(
+            node_id=node_base_id + 2,
+            lat=order.getLatitude(),
+            lon=order.getLongitude(),
+            demand=-1,
+            earliest=order.get_timeRequest(),
+            latest=order.get_timeRequest() + order.getDeadLine(),
+            service_time=0,
+            order_id=idx,
+        )
+
+        pickup.pair = delivery
+        delivery.pair = pickup
+        requests.append((pickup, delivery))
+
+    return requests
