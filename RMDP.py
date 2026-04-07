@@ -45,9 +45,6 @@ class RMDP:
         self.velocity = velocity
         self.restaurantPrepareTime = restaurantPrepareTime
 
-        for currentDelay in self.vehiceList:
-            currentDelay.setVelocity(40)
-
         for vehicle in self.vehiceList:
             vehicle.setVelocity(self.velocity)
             vehicle.setCurrentCapacity(0)
@@ -173,8 +170,6 @@ class RMDP:
 
             currentRoute["route"].insert(first, currentParedRestaurent)
             currentRoute["route"].insert(second, D)
-
-    # main function
 
     def Slack(self):
         return sum(self.slackDelay(r) for r in self.Theta_x)
