@@ -21,7 +21,7 @@ def main():
 
     batch = orders[:num_orders]
 
-    print(f"PDP Solver (OR-Tools)")
+    print("PDP Solver (OR-Tools)")
     print(f"Orders: {len(batch)}, Vehicles: {len(drivers)}, Restaurants: {len(restaurants)}")
     print(f"Velocity: {velocity:.2f} m/s, Capacity: {capacity}, Prepare time: {prepare_time}s")
     print()

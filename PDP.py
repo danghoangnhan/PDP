@@ -1,6 +1,4 @@
-import copy
 
-from Math.distance import distance
 from model.node import PickupNode, DeliveryNode
 
 
