@@ -29,8 +29,7 @@ PDP/
 │   ├── order.py             # Order model (Ds)
 │   └── restaurant.py        # Restaurant model
 ├── Math/
-│   ├── distance.py          # Haversine distance (km)
-│   └── Geometry.py          # Circle-line intersection
+│   └── distance.py          # Haversine distance (km)
 ├── generatingData/
 │   └── generateTestData.py  # Dataset loader (TSV/custom format)
 ├── data/rawData/

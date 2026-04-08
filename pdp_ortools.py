@@ -4,7 +4,7 @@ from ortools.constraint_solver import routing_enums_pb2, pywrapcp
 
 from Math.distance import distance
 from PDP import build_requests
-from model.node import PickupNode, DeliveryNode
+from model.node import PickupNode
 
 
 def build_distance_matrix(nodes):
@@ -170,6 +170,11 @@ def solve_pdp(data, time_limit=30):
     search_parameters.local_search_metaheuristic = (
         routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH)
     search_parameters.time_limit.FromSeconds(time_limit)
+
+    # --- Accelerator: enable CP-SAT and multi-threading ---
+    search_parameters.use_cp_sat = pywrapcp.BOOL_TRUE
+    search_parameters.sat_parameters.num_workers = 0  # auto-detect CPU cores
+    search_parameters.log_search = True
 
     solution = routing.SolveWithParameters(search_parameters)
     return manager, routing, solution
