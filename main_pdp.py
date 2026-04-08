@@ -24,9 +24,9 @@ def main():
     cfg = load_config(config_path=args.config, cli_overrides=cli_overrides)
 
     # Load dataset
-    orders, _, _ = importOrderValue()
-    drivers, _, _ = importVehicleValue()
-    restaurants, _, _ = importRestaurantValue()
+    orders = importOrderValue()
+    drivers = importVehicleValue()
+    restaurants = importRestaurantValue()
 
     for d in drivers:
         d.velocity = cfg.velocity

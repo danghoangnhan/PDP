@@ -101,6 +101,7 @@ def create_data_model(orders, restaurants, drivers, prepare_time, velocity, capa
         latest=0,
         service_time=0,
         order_id=-1,
+        is_pickup=False,
     )
 
     # Node list: [depot, pickup_1, delivery_1, pickup_2, delivery_2, ...]
@@ -170,7 +171,7 @@ def solve_pdp(data, time_limit=30, search_parameters=None,
     def time_callback(from_index, to_index):
         from_node = manager.IndexToNode(from_index)
         to_node = manager.IndexToNode(to_index)
-        return data.time_matrix[from_node][to_node]
+        return data.time_matrix[from_node][to_node] + data.nodes[from_node].service_time
 
     time_callback_index = routing.RegisterTransitCallback(time_callback)
     routing.AddDimension(
@@ -210,15 +211,14 @@ def solve_pdp(data, time_limit=30, search_parameters=None,
         routing.solver().Add(
             routing.VehicleVar(pickup_index) == routing.VehicleVar(delivery_index)
         )
-        time_dimension.CumulVar(pickup_index).SetMax(
-            time_dimension.CumulVar(delivery_index).Max()
-        )
         routing.solver().Add(
             time_dimension.CumulVar(pickup_index)
             <= time_dimension.CumulVar(delivery_index)
         )
 
     # --- Allow dropping nodes with penalty ---
+    # Per-node disjunctions work with AddPickupAndDelivery: if one node of a pair
+    # is dropped, the pickup-delivery constraint forces the other to be dropped too.
     for node in range(1, num_nodes):
         routing.AddDisjunction([manager.NodeToIndex(node)], drop_penalty)
 

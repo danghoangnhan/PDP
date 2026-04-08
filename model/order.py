@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass
@@ -12,7 +11,3 @@ class Order:
     latitude: float
     longitude: float
     deadline: int
-    vehicle: int = 0
-    L: int = 0
-    driver_id: Optional[int] = None
-    arrive_time: int = 0
