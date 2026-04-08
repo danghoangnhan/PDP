@@ -1,6 +1,5 @@
 import pytest
-from model.node import Node
-from model.driver import Driver
+from pdp.models import Node, Driver
 
 
 @pytest.fixture
