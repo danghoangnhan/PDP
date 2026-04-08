@@ -1,7 +1,7 @@
 import json
 import pytest
 
-from config import load_config, DEFAULTS
+from pdp.config import load_config, DEFAULTS
 
 
 def test_load_config_defaults():
@@ -45,13 +45,12 @@ def test_toml_config_loading(tmp_path):
     assert cfg.capacity == 20
     assert cfg.time_limit == 60
     assert cfg.drop_penalty == 50000
-    # Unspecified values fall back to defaults
     assert cfg.prepare_time == 600
     assert cfg.num_orders == 50
 
 
 def test_search_params_from_json(tmp_path):
-    """Search parameters load from protobuf JSON file."""
+    """Search parameters load as raw dict from JSON file."""
     sp_file = tmp_path / "sp.json"
     sp_file.write_text(json.dumps({
         "firstSolutionStrategy": "PATH_CHEAPEST_ARC",
@@ -63,14 +62,15 @@ def test_search_params_from_json(tmp_path):
         f'search_params_file = "{sp_file}"\n'
     )
     cfg = load_config(config_path=str(config_file))
-    assert cfg.search_parameters.log_search is False
+    assert cfg.search_params_raw is not None
+    assert cfg.search_params_raw["logSearch"] is False
+    assert cfg.search_params_raw["firstSolutionStrategy"] == "PATH_CHEAPEST_ARC"
 
 
 def test_search_params_fallback_without_file():
-    """Search parameters fall back to defaults when JSON file is missing."""
+    """Search parameters are None when JSON file is missing."""
     cfg = load_config(config_path="/nonexistent/config.toml")
-    assert cfg.search_parameters is not None
-    assert cfg.search_parameters.log_search is True
+    assert cfg.search_params_raw is None
 
 
 def test_cli_overrides_over_toml(tmp_path):
