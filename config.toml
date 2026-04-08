@@ -1,0 +1,23 @@
+# PDP Solver Configuration
+
+[application]
+velocity_kmh = 20           # Vehicle speed in km/h (converted to m/s internally)
+prepare_time_min = 10        # Restaurant preparation time in minutes
+capacity = 10               # Max orders per vehicle
+num_orders = 50             # Orders to process (0 = all)
+
+[solver]
+time_limit = 10             # Solver timeout in seconds
+drop_penalty = 100000       # Penalty for dropping a node
+time_slack = 3600           # Time dimension slack in seconds
+max_time = 86400            # Max cumulative time in seconds (24h)
+depot_time_window = 86400   # Depot latest time in seconds (24h)
+
+# OR-Tools search parameters file (protobuf JSON format)
+search_params_file = "solver_params.json"
+
+[paths]
+data_dir = "data/rawData"
+restaurant_file = "restaurants.txt"
+vehicles_file = "vehicles.txt"
+order_file = "180_0.txt"

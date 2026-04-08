@@ -1,0 +1,7 @@
+{
+  "firstSolutionStrategy": "PATH_CHEAPEST_ARC",
+  "localSearchMetaheuristic": "GUIDED_LOCAL_SEARCH",
+  "useCpSat": "BOOL_TRUE",
+  "satParameters": {"numWorkers": 0},
+  "logSearch": true
+}
