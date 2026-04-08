@@ -23,16 +23,16 @@ Located in `pdp_ortools.py`.
 
 ### 3. Create Data Model
 
-`create_data_model(orders, restaurants, drivers, prepare_time, velocity, capacity)`:
+`create_data_model(orders, restaurants, drivers, prepare_time, velocity, capacity, depot_time_window=86400)`:
 - Creates depot at centroid of all driver locations
 - Builds node list: `[depot, P0, D0, P1, D1, ...]`
 - Computes distance and time matrices
 - Sets time windows (converted from minutes to seconds)
-- Returns dict consumed by `solve_pdp()`
+- Returns `DataModel` dataclass consumed by `solve_pdp()`
 
 ### 4. Solve
 
-`solve_pdp(data, time_limit=30)` configures and runs the OR-Tools routing solver:
+`solve_pdp(data, time_limit=30, search_parameters=None, time_slack=3600, max_time=86400, drop_penalty=100000)` configures and runs the OR-Tools routing solver:
 
 #### Dimensions
 
@@ -73,11 +73,14 @@ This allows the solver to drop orders that cannot be served within constraints r
 
 #### Search Strategy
 
-| Phase | Strategy |
-|-------|----------|
-| Initial solution | `PATH_CHEAPEST_ARC` |
-| Improvement | `GUIDED_LOCAL_SEARCH` |
-| Time limit | Configurable (default 30s) |
+All search parameters are configurable via `solver_params.json` (protobuf JSON format). See [Configuration](Configuration) for the full list of available algorithms.
+
+| Phase | Default Strategy | Configurable via |
+|-------|----------|-----------------|
+| Initial solution | `PATH_CHEAPEST_ARC` | `firstSolutionStrategy` in solver_params.json |
+| Improvement | `GUIDED_LOCAL_SEARCH` | `localSearchMetaheuristic` in solver_params.json |
+| Time limit | 10s | `time_limit` in config.toml or `--time-limit` CLI flag |
+| CP-SAT accelerator | Enabled | `useCpSat` in solver_params.json |
 
 ### 5. Extract Results
 

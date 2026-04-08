@@ -5,6 +5,10 @@
 ```
 main_pdp.py          Entry point — orchestrates loading, solving, output
      │
+     ├── config.py         Configuration loader (TOML + protobuf JSON)
+     │     ├── config.toml         Application & solver parameters
+     │     └── solver_params.json  OR-Tools search strategy (protobuf JSON)
+     │
      ├── pdp_ortools.py    OR-Tools solver
      │        │
      │        ├── PDP.py           Constraint validation + data conversion
@@ -14,22 +18,28 @@ main_pdp.py          Entry point — orchestrates loading, solving, output
      │
      └── generatingData/
               └── generateTestData.py   Dataset loader
-                       └── setting.py   File paths
+                       └── setting.py   File paths (delegates to config.py)
 ```
 
 ## Data Flow
 
 ```
+config.toml + solver_params.json
+    │
+    ▼
+load_config()  →  AppConfig (velocities, limits, search_parameters, paths)
+    │
+    ▼
 Raw Data (TSV files)
     │
     ▼
-generateTestData.import*()  →  model objects (Ds, restaurant, driver)
+generateTestData.import*()  →  model objects (Order, Restaurant, Driver)
     │
     ▼
 build_requests()  →  (PickupNode, DeliveryNode) pairs
     │
     ▼
-create_data_model()  →  OR-Tools data dict
+create_data_model()  →  DataModel dataclass
     │                    ├── distance_matrix (meters, int)
     │                    ├── time_matrix (seconds, int)
     │                    ├── time_windows [(earliest, latest)]
@@ -37,7 +47,7 @@ create_data_model()  →  OR-Tools data dict
     │                    ├── demands [+1 pickup, -1 delivery]
     │                    └── vehicle_capacities [cap] * num_vehicles
     ▼
-solve_pdp()  →  (manager, routing, solution)
+solve_pdp(data, search_parameters, ...)  →  (manager, routing, solution)
     │
     ▼
 extract_routes() / print_solution()

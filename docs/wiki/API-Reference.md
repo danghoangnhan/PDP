@@ -1,5 +1,35 @@
 # API Reference
 
+## config.py
+
+### `load_config(config_path=None, cli_overrides=None) -> AppConfig`
+
+Load configuration from TOML file with optional CLI overrides.
+
+- **config_path**: path to config.toml (default: project root)
+- **cli_overrides**: dict with keys `time_limit`, `num_orders` to override
+- **Returns**: `AppConfig` dataclass with computed values
+
+### `AppConfig` (dataclass)
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `velocity` | float | Vehicle speed in m/s |
+| `prepare_time` | int | Preparation time in seconds |
+| `capacity` | int | Max orders per vehicle |
+| `num_orders` | int | Orders to process |
+| `time_limit` | int | Solver timeout (seconds) |
+| `drop_penalty` | int | Node drop penalty |
+| `time_slack` | int | Time dimension slack (seconds) |
+| `max_time` | int | Max cumulative time (seconds) |
+| `depot_time_window` | int | Depot latest time (seconds) |
+| `restaurant_dir` | str | Absolute path to restaurants file |
+| `vehicles_dir` | str | Absolute path to vehicles file |
+| `order_dir` | str | Absolute path to orders file |
+| `search_parameters` | RoutingSearchParameters | OR-Tools protobuf object |
+
+---
+
 ## PDP.py
 
 ### `check_precedence(route) -> bool`
@@ -45,11 +75,12 @@ Convert distance matrix to travel time matrix.
 - **velocity**: float (m/s)
 - **Returns**: 2D integer matrix (seconds)
 
-### `create_data_model(orders, restaurants, drivers, prepare_time, velocity, capacity) -> dict`
+### `create_data_model(orders, restaurants, drivers, prepare_time, velocity, capacity, depot_time_window=86400) -> DataModel`
 
 Build the complete data model for OR-Tools.
 
-- **Returns**: dict with keys:
+- **depot_time_window**: depot latest time in seconds (default 24h)
+- **Returns**: `DataModel` dataclass with attributes:
   - `distance_matrix`, `time_matrix`: 2D int lists
   - `time_windows`: list of (earliest, latest) tuples
   - `pickups_deliveries`: list of (pickup_idx, delivery_idx)
@@ -59,19 +90,23 @@ Build the complete data model for OR-Tools.
   - `depot`: 0
   - `nodes`: list of Node objects
 
-### `solve_pdp(data, time_limit=30) -> tuple`
+### `solve_pdp(data, time_limit=30, search_parameters=None, time_slack=3600, max_time=86400, drop_penalty=100000) -> tuple`
 
 Run the OR-Tools routing solver.
 
-- **data**: dict from `create_data_model()`
-- **time_limit**: solver timeout in seconds
+- **data**: `DataModel` from `create_data_model()`
+- **time_limit**: solver timeout in seconds (used only if `search_parameters` is None)
+- **search_parameters**: pre-built `RoutingSearchParameters` protobuf object (from `config.py`)
+- **time_slack**: time dimension slack in seconds
+- **max_time**: max cumulative time in seconds
+- **drop_penalty**: penalty for dropping a node
 - **Returns**: `(manager, routing, solution)` tuple. `solution` is `None` if infeasible.
 
-### `extract_routes(data, manager, routing, solution) -> list[dict]`
+### `extract_routes(data, manager, routing, solution) -> list[Route]`
 
 Extract vehicle routes from solution.
 
-- **Returns**: list of dicts with keys: `vehicle_id`, `route` (node indices), `distance` (meters), `time` (seconds). Only non-empty routes included.
+- **Returns**: list of `Route` dataclasses with attributes: `vehicle_id`, `route` (node indices), `distance` (meters), `time` (seconds). Only non-empty routes included.
 
 ### `print_solution(data, manager, routing, solution)`
 

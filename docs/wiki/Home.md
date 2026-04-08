@@ -5,6 +5,7 @@ Welcome to the PDP project wiki.
 ## Pages
 
 - [Architecture](Architecture) -- System design and module overview
+- [Configuration](Configuration) -- Config files, OR-Tools algorithms, and CLI options
 - [OR-Tools Solver](OR-Tools-Solver) -- How the OR-Tools PDP solver works
 - [Dataset](Dataset) -- Data format and structure
 - [API Reference](API-Reference) -- Function and class reference
