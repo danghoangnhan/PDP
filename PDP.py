@@ -1,5 +1,5 @@
 
-from model.node import PickupNode, DeliveryNode
+from model.node import Node
 
 
 def check_precedence(route):
@@ -25,32 +25,34 @@ def check_capacity(route, max_capacity):
 
 
 def build_requests(orders, restaurants, prepare_time):
-    """Convert orders + restaurants into list of (PickupNode, DeliveryNode) pairs."""
+    """Convert orders + restaurants into list of (pickup Node, delivery Node) pairs."""
     requests = []
     for idx, order in enumerate(orders):
-        rest = restaurants[order.getRestaurantId() - 1]
+        rest = restaurants[order.restaurant_id - 1]
         node_base_id = idx * 2
 
-        pickup = PickupNode(
+        pickup = Node(
             node_id=node_base_id + 1,
-            lat=rest.getLatitude(),
-            lon=rest.getLongitude(),
+            lat=rest.latitude,
+            lon=rest.longitude,
             demand=1,
-            earliest=order.get_timeRequest(),
-            latest=order.get_timeRequest() + prepare_time,
+            earliest=order.time_request,
+            latest=order.time_request + prepare_time,
             service_time=prepare_time,
             order_id=idx,
+            is_pickup=True,
         )
 
-        delivery = DeliveryNode(
+        delivery = Node(
             node_id=node_base_id + 2,
-            lat=order.getLatitude(),
-            lon=order.getLongitude(),
+            lat=order.latitude,
+            lon=order.longitude,
             demand=-1,
-            earliest=order.get_timeRequest(),
-            latest=order.get_timeRequest() + order.getDeadLine(),
+            earliest=order.time_request,
+            latest=order.time_request + order.deadline,
             service_time=0,
             order_id=idx,
+            is_pickup=False,
         )
 
         pickup.pair = delivery

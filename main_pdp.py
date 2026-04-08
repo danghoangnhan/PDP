@@ -16,8 +16,8 @@ def main():
     time_limit = 10                 # solver time limit in seconds
 
     for d in drivers:
-        d.setVelocity(velocity)
-        d.setCurrentCapacity(0)
+        d.velocity = velocity
+        d.current_capacity = 0
 
     batch = orders[:num_orders]
 
@@ -28,8 +28,8 @@ def main():
 
     # Build data model
     data = create_data_model(batch, restaurants, drivers, prepare_time, velocity, capacity)
-    print(f"Nodes: {len(data['nodes'])} (1 depot + {len(batch)} pickups + {len(batch)} deliveries)")
-    print(f"Pickup-delivery pairs: {len(data['pickups_deliveries'])}")
+    print(f"Nodes: {len(data.nodes)} (1 depot + {len(batch)} pickups + {len(batch)} deliveries)")
+    print(f"Pickup-delivery pairs: {len(data.pickups_deliveries)}")
     print()
 
     # Solve
@@ -51,7 +51,7 @@ def main():
     total_orders_served = 0
     for r in routes:
         # Count delivery nodes (non-depot, non-pickup)
-        served = sum(1 for idx in r['route'] if idx != 0 and not data['nodes'][idx].is_pickup)
+        served = sum(1 for idx in r.route if idx != 0 and not data.nodes[idx].is_pickup)
         total_orders_served += served
 
     print(f"Orders served: {total_orders_served} / {len(batch)}")

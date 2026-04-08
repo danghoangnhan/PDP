@@ -1,10 +1,38 @@
 """OR-Tools based Pickup-and-Delivery Problem (PDP) solver for meal delivery routing."""
 
+from dataclasses import dataclass, field
+from typing import Optional
+
 from ortools.constraint_solver import routing_enums_pb2, pywrapcp
 
 from Math.distance import distance
 from PDP import build_requests
-from model.node import PickupNode
+from model.node import Node
+
+
+@dataclass
+class DataModel:
+    """All data consumed by the OR-Tools routing solver."""
+
+    distance_matrix: list[list[int]]
+    time_matrix: list[list[int]]
+    time_windows: list[tuple[int, int]]
+    pickups_deliveries: list[tuple[int, int]]
+    demands: list[int]
+    vehicle_capacities: list[int]
+    num_vehicles: int
+    depot: int
+    nodes: list[Node]
+
+
+@dataclass
+class Route:
+    """A single vehicle route extracted from the solver solution."""
+
+    vehicle_id: int
+    route: list[int]
+    distance: int
+    time: int
 
 
 def build_distance_matrix(nodes):
@@ -33,29 +61,29 @@ def build_time_matrix(distance_matrix, velocity):
 
 
 def create_data_model(orders, restaurants, drivers, prepare_time, velocity, capacity):
-    """Build the data model dict consumed by solve_pdp.
+    """Build the DataModel consumed by solve_pdp.
 
     Parameters
     ----------
-    orders : list of Ds
-    restaurants : list of restaurant
-    drivers : list of driver
+    orders : list of Order
+    restaurants : list of Restaurant
+    drivers : list of Driver
     prepare_time : int  – seconds
     velocity : float – m/s
     capacity : int – max items per vehicle
 
     Returns
     -------
-    dict with keys described in the module docstring.
+    DataModel
     """
     requests = build_requests(orders, restaurants, prepare_time)
 
     # Depot at centroid of driver locations
-    depot_lat = sum(d.getLatitude() for d in drivers) / len(drivers)
-    depot_lon = sum(d.getLongitude() for d in drivers) / len(drivers)
-    depot = PickupNode(node_id=0, lat=depot_lat, lon=depot_lon,
-                       demand=0, earliest=0, latest=0,
-                       service_time=0, order_id=-1)
+    depot_lat = sum(d.latitude for d in drivers) / len(drivers)
+    depot_lon = sum(d.longitude for d in drivers) / len(drivers)
+    depot = Node(node_id=0, lat=depot_lat, lon=depot_lon,
+                 demand=0, earliest=0, latest=0,
+                 service_time=0, order_id=-1)
 
     # Node list: [depot, pickup_1, delivery_1, pickup_2, delivery_2, ...]
     nodes = [depot]
@@ -80,17 +108,17 @@ def create_data_model(orders, restaurants, drivers, prepare_time, velocity, capa
     demands = [node.demand for node in nodes]
     demands[0] = 0  # depot
 
-    return {
-        'distance_matrix': dist_matrix,
-        'time_matrix': time_matrix,
-        'time_windows': time_windows,
-        'pickups_deliveries': pickups_deliveries,
-        'demands': demands,
-        'vehicle_capacities': [capacity] * len(drivers),
-        'num_vehicles': len(drivers),
-        'depot': 0,
-        'nodes': nodes,
-    }
+    return DataModel(
+        distance_matrix=dist_matrix,
+        time_matrix=time_matrix,
+        time_windows=time_windows,
+        pickups_deliveries=pickups_deliveries,
+        demands=demands,
+        vehicle_capacities=[capacity] * len(drivers),
+        num_vehicles=len(drivers),
+        depot=0,
+        nodes=nodes,
+    )
 
 
 def solve_pdp(data, time_limit=30):
@@ -98,16 +126,16 @@ def solve_pdp(data, time_limit=30):
 
     Returns (manager, routing, solution) tuple.
     """
-    num_nodes = len(data['distance_matrix'])
+    num_nodes = len(data.distance_matrix)
     manager = pywrapcp.RoutingIndexManager(
-        num_nodes, data['num_vehicles'], data['depot'])
+        num_nodes, data.num_vehicles, data.depot)
     routing = pywrapcp.RoutingModel(manager)
 
     # --- Distance callback & arc cost ---
     def distance_callback(from_index, to_index):
         from_node = manager.IndexToNode(from_index)
         to_node = manager.IndexToNode(to_index)
-        return data['distance_matrix'][from_node][to_node]
+        return data.distance_matrix[from_node][to_node]
 
     transit_callback_index = routing.RegisterTransitCallback(distance_callback)
     routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
@@ -116,7 +144,7 @@ def solve_pdp(data, time_limit=30):
     def time_callback(from_index, to_index):
         from_node = manager.IndexToNode(from_index)
         to_node = manager.IndexToNode(to_index)
-        return data['time_matrix'][from_node][to_node]
+        return data.time_matrix[from_node][to_node]
 
     time_callback_index = routing.RegisterTransitCallback(time_callback)
     routing.AddDimension(
@@ -130,24 +158,24 @@ def solve_pdp(data, time_limit=30):
     # Time window constraints
     for node_idx in range(num_nodes):
         index = manager.NodeToIndex(node_idx)
-        earliest, latest = data['time_windows'][node_idx]
+        earliest, latest = data.time_windows[node_idx]
         time_dimension.CumulVar(index).SetRange(earliest, latest)
 
     # --- Demand callback & capacity dimension ---
     def demand_callback(from_index):
         from_node = manager.IndexToNode(from_index)
-        return data['demands'][from_node]
+        return data.demands[from_node]
 
     demand_callback_index = routing.RegisterUnaryTransitCallback(demand_callback)
     routing.AddDimensionWithVehicleCapacity(
         demand_callback_index,
         0,      # null capacity slack
-        data['vehicle_capacities'],
+        data.vehicle_capacities,
         True,   # start cumul to zero
         'Capacity')
 
     # --- Pickup and delivery constraints ---
-    for pickup_node, delivery_node in data['pickups_deliveries']:
+    for pickup_node, delivery_node in data.pickups_deliveries:
         pickup_index = manager.NodeToIndex(pickup_node)
         delivery_index = manager.NodeToIndex(delivery_node)
         routing.AddPickupAndDelivery(pickup_index, delivery_index)
@@ -183,13 +211,13 @@ def solve_pdp(data, time_limit=30):
 def extract_routes(data, manager, routing, solution):
     """Extract routes from the solution.
 
-    Returns list of dicts with keys: vehicle_id, route, distance, time.
+    Returns list of Route dataclasses.
     Only includes vehicles with non-empty routes (more than just depot).
     """
     routes = []
     time_dimension = routing.GetDimensionOrDie('Time')
 
-    for vehicle_id in range(data['num_vehicles']):
+    for vehicle_id in range(data.num_vehicles):
         index = routing.Start(vehicle_id)
         route_nodes = []
         route_distance = 0
@@ -211,12 +239,12 @@ def extract_routes(data, manager, routing, solution):
         end_time = solution.Value(time_dimension.CumulVar(index))
         route_time = end_time - start_time
 
-        routes.append({
-            'vehicle_id': vehicle_id,
-            'route': route_nodes,
-            'distance': route_distance,
-            'time': route_time,
-        })
+        routes.append(Route(
+            vehicle_id=vehicle_id,
+            route=route_nodes,
+            distance=route_distance,
+            time=route_time,
+        ))
 
     return routes
 
@@ -231,7 +259,7 @@ def print_solution(data, manager, routing, solution):
     total_distance = 0
     total_time = 0
 
-    for vehicle_id in range(data['num_vehicles']):
+    for vehicle_id in range(data.num_vehicles):
         index = routing.Start(vehicle_id)
         route_str = ''
         route_distance = 0
@@ -244,7 +272,7 @@ def print_solution(data, manager, routing, solution):
             if node == 0:
                 label = 'Depot'
             else:
-                n = data['nodes'][node]
+                n = data.nodes[node]
                 prefix = 'P' if n.is_pickup else 'D'
                 label = f'{prefix}{n.order_id}'
 

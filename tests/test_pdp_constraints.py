@@ -1,15 +1,17 @@
-from model.node import PickupNode, DeliveryNode
+from model.node import Node
 from PDP import check_precedence, check_capacity
 
 
 def _make_pair(order_id, p_lat=41.66, p_lon=-91.51, d_lat=41.65, d_lon=-91.53):
-    p = PickupNode(
+    p = Node(
         node_id=order_id * 2 - 1, lat=p_lat, lon=p_lon, demand=1,
         earliest=0, latest=600, service_time=300, order_id=order_id,
+        is_pickup=True,
     )
-    d = DeliveryNode(
+    d = Node(
         node_id=order_id * 2, lat=d_lat, lon=d_lon, demand=-1,
         earliest=100, latest=1200, service_time=0, order_id=order_id,
+        is_pickup=False,
     )
     p.pair = d
     d.pair = p

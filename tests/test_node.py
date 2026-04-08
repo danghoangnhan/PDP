@@ -1,10 +1,11 @@
-from model.node import PickupNode, DeliveryNode
+from model.node import Node
 
 
 def test_pickup_node_attributes():
-    p = PickupNode(
+    p = Node(
         node_id=1, lat=41.66, lon=-91.51, demand=1,
         earliest=0, latest=600, service_time=300, order_id=10,
+        is_pickup=True,
     )
     assert p.node_id == 1
     assert p.lat == 41.66
@@ -19,22 +20,25 @@ def test_pickup_node_attributes():
 
 
 def test_delivery_node_attributes():
-    d = DeliveryNode(
+    d = Node(
         node_id=2, lat=41.65, lon=-91.53, demand=-1,
         earliest=100, latest=900, service_time=0, order_id=10,
+        is_pickup=False,
     )
     assert d.demand == -1
     assert d.is_pickup is False
 
 
 def test_pairing():
-    p = PickupNode(
+    p = Node(
         node_id=1, lat=41.66, lon=-91.51, demand=1,
         earliest=0, latest=600, service_time=300, order_id=10,
+        is_pickup=True,
     )
-    d = DeliveryNode(
+    d = Node(
         node_id=2, lat=41.65, lon=-91.53, demand=-1,
         earliest=100, latest=900, service_time=0, order_id=10,
+        is_pickup=False,
     )
     p.pair = d
     d.pair = p
