@@ -1,4 +1,4 @@
-from model.node import Node
+from pdp.models import Node
 
 
 def test_pickup_node_attributes():

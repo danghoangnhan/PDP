@@ -1,8 +1,12 @@
+"""CLI entry point for PDP solver."""
+
 import argparse
 
-from config import load_config
-from generatingData.generateTestData import importOrderValue, importVehicleValue, importRestaurantValue
-from pdp_ortools import create_data_model, solve_pdp, extract_routes, print_solution
+from pdp.config import load_config
+from pdp.data.loaders import load_orders, load_drivers, load_restaurants
+from pdp.models.data_model import create_data_model, DataModel
+from pdp.models.result import SolveResult, SolverStatus
+from pdp.solvers import ORToolsSolver
 
 
 def parse_args():
@@ -11,6 +15,31 @@ def parse_args():
     parser.add_argument("--time-limit", type=int, default=None, help="Solver time limit (seconds)")
     parser.add_argument("--num-orders", type=int, default=None, help="Number of orders to process")
     return parser.parse_args()
+
+
+def print_solution(result: SolveResult, data: DataModel):
+    """Print solver results with P/D notation."""
+    if result.status == SolverStatus.NO_SOLUTION:
+        print("No solution found.")
+        return
+
+    for route_info in result.routes:
+        route_str = ""
+        for node_idx in route_info.route:
+            if node_idx == 0:
+                label = "Depot"
+            else:
+                n = data.nodes[node_idx]
+                prefix = "P" if n.is_pickup else "D"
+                label = f"{prefix}{n.order_id}"
+            route_str += f" {label} ->"
+        # Remove trailing arrow
+        route_str = route_str.rstrip(" ->")
+        print(f"Vehicle {route_info.vehicle_id}: {route_str}")
+        print(f"  Distance: {route_info.distance}m  Time: {route_info.time}s")
+
+    print(f"\nTotal distance: {result.total_distance}m")
+    print(f"Max route time: {result.total_time}s")
 
 
 def main():
@@ -24,9 +53,9 @@ def main():
     cfg = load_config(config_path=args.config, cli_overrides=cli_overrides)
 
     # Load dataset
-    orders = importOrderValue()
-    drivers = importVehicleValue()
-    restaurants = importRestaurantValue()
+    orders = load_orders(cfg.order_dir)
+    drivers = load_drivers(cfg.vehicles_dir)
+    restaurants = load_restaurants(cfg.restaurant_dir)
 
     for d in drivers:
         d.velocity = cfg.velocity
@@ -48,32 +77,23 @@ def main():
 
     # Solve
     print(f"Solving with {cfg.time_limit}s time limit...")
-    manager, routing, solution = solve_pdp(
-        data,
-        search_parameters=cfg.search_parameters,
-        time_slack=cfg.time_slack,
-        max_time=cfg.max_time,
-        drop_penalty=cfg.drop_penalty,
-    )
+    solver = ORToolsSolver(cfg)
+    result = solver.solve(data)
 
-    if solution is None:
+    if result.status == SolverStatus.NO_SOLUTION:
         print("No solution found!")
         return
 
     # Print results
     print()
-    print_solution(data, manager, routing, solution)
+    print_solution(result, data)
 
     # Summary
-    routes = extract_routes(data, manager, routing, solution)
-    print(f"\nActive vehicles: {len(routes)} / {len(drivers)}")
-
+    print(f"\nActive vehicles: {len(result.routes)} / {len(drivers)}")
     total_orders_served = 0
-    for r in routes:
-        # Count delivery nodes (non-depot, non-pickup)
+    for r in result.routes:
         served = sum(1 for idx in r.route if idx != 0 and not data.nodes[idx].is_pickup)
         total_orders_served += served
-
     print(f"Orders served: {total_orders_served} / {len(batch)}")
     dropped = len(batch) - total_orders_served
     if dropped > 0:

@@ -1,12 +1,15 @@
 [project]
 name = "pdp"
-version = "0.1.0"
+version = "0.2.0"
 description = "Pick-up and Delivery Problem solver using Google OR-Tools"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "ortools>=9.15.6755",
 ]
+
+[project.scripts]
+pdp-solve = "pdp.cli:main"
 
 [dependency-groups]
 dev = [

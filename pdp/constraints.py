@@ -1,5 +1,4 @@
-
-from model.node import Node
+from pdp.models.node import Node
 
 
 def check_precedence(route):

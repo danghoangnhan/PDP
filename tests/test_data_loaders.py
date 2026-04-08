@@ -1,7 +1,5 @@
-# tests/test_pdp_data.py
-from PDP import build_requests
-from model.order import Order
-from model.restaurant import Restaurant
+from pdp.constraints import build_requests
+from pdp.models import Order, Restaurant
 
 
 def test_build_requests_creates_paired_nodes():

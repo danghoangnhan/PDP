@@ -1,18 +1,16 @@
 """Configuration loader for PDP solver.
 
-Loads settings from config.toml (TOML) and solver_params.json (protobuf JSON).
+Loads settings from config.toml (TOML) and solver_params.json (raw JSON dict).
 Falls back to built-in defaults if config files are missing.
 """
 
+import json
 import os
 import tomllib
 from dataclasses import dataclass
 
-from ortools.constraint_solver import routing_enums_pb2, pywrapcp
-from google.protobuf import json_format
 
-
-_ROOT = os.path.dirname(os.path.realpath(__file__))
+_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 DEFAULTS = {
     "application": {
@@ -60,8 +58,8 @@ class AppConfig:
     vehicles_dir: str
     order_dir: str
 
-    # OR-Tools search parameters (protobuf object)
-    search_parameters: object
+    # OR-Tools search parameters (raw JSON dict, parsed by solver)
+    search_params_raw: dict | None
 
 
 def _deep_merge(base: dict, override: dict) -> dict:
@@ -80,22 +78,12 @@ def _deep_merge(base: dict, override: dict) -> dict:
     return result
 
 
-def _load_search_params(search_params_path: str, time_limit: int):
-    """Load OR-Tools RoutingSearchParameters from protobuf JSON file."""
-    sp = pywrapcp.DefaultRoutingSearchParameters()
+def _load_search_params_raw(search_params_path: str) -> dict | None:
+    """Load search parameters as a raw dict from a JSON file."""
     if search_params_path and os.path.exists(search_params_path):
         with open(search_params_path) as f:
-            json_format.Parse(f.read(), sp)
-    else:
-        sp.first_solution_strategy = (
-            routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC)
-        sp.local_search_metaheuristic = (
-            routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH)
-        sp.use_cp_sat = pywrapcp.BOOL_TRUE
-        sp.sat_parameters.num_workers = 0
-        sp.log_search = True
-    sp.time_limit.FromSeconds(time_limit)
-    return sp
+            return json.load(f)
+    return None
 
 
 def load_config(config_path: str = None, cli_overrides: dict = None) -> AppConfig:
@@ -104,7 +92,7 @@ def load_config(config_path: str = None, cli_overrides: dict = None) -> AppConfi
     Parameters
     ----------
     config_path : str, optional
-        Path to config.toml. If None, looks for config.toml next to this file.
+        Path to config.toml. If None, looks for config.toml in project root.
     cli_overrides : dict, optional
         Keys like {"time_limit": 30, "num_orders": 100} to override.
     """
@@ -112,7 +100,8 @@ def load_config(config_path: str = None, cli_overrides: dict = None) -> AppConfi
         config_path = os.path.join(_ROOT, "config.toml")
 
     raw = {}
-    if os.path.exists(config_path):
+    config_found = os.path.exists(config_path)
+    if config_found:
         with open(config_path, "rb") as f:
             raw = tomllib.load(f)
 
@@ -131,10 +120,15 @@ def load_config(config_path: str = None, cli_overrides: dict = None) -> AppConfi
     # Resolve paths
     data_dir = os.path.join(_ROOT, paths["data_dir"])
 
-    # Load OR-Tools search params
+    # Load search params as raw dict — only resolve relative paths when a
+    # config file was actually found so that bare defaults don't pick up
+    # stray files from the project root.
     sp_file = solver.get("search_params_file", "")
-    sp_path = os.path.join(_ROOT, sp_file) if sp_file else ""
-    search_params = _load_search_params(sp_path, solver["time_limit"])
+    if sp_file and (config_found or os.path.isabs(sp_file)):
+        sp_path = os.path.join(_ROOT, sp_file) if not os.path.isabs(sp_file) else sp_file
+    else:
+        sp_path = ""
+    search_params_raw = _load_search_params_raw(sp_path)
 
     return AppConfig(
         velocity=app["velocity_kmh"] * 1000 / 3600,
@@ -149,5 +143,5 @@ def load_config(config_path: str = None, cli_overrides: dict = None) -> AppConfi
         restaurant_dir=os.path.join(data_dir, paths["restaurant_file"]),
         vehicles_dir=os.path.join(data_dir, paths["vehicles_file"]),
         order_dir=os.path.join(data_dir, paths["order_file"]),
-        search_parameters=search_params,
+        search_params_raw=search_params_raw,
     )
